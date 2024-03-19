@@ -1,0 +1,43 @@
+version: "3.8"
+
+services: # Define os serviços Docker a serem configurados
+    # WordPress
+    wordpress:
+        build: . # Define que o Dockerfile para este serviço está localizado no diretório atual
+        restart: always # Define que o serviço deve ser reiniciado sempre que parar inesperadamente
+        ports: # Mapeia as portas do host para o contêiner
+            - 8080:80 # Mapeia a porta 8080 do host para a porta 80 do contêiner WordPress
+        environment: # Define variáveis de ambiente para o contêiner
+            WORDPRESS_DB_HOST: db # Host do banco de dados WordPress
+            WORDPRESS_DB_USER: wp_user # Usuário do banco de dados WordPress
+            WORDPRESS_DB_PASSWORD: wp_pass # Senha do usuário do banco de dados WordPress
+            WORDPRESS_DB_NAME: wpdb # Nome do banco de dados WordPress
+
+    # Banco de dados MariaDB
+    db:
+        image: mariadb:latest # Define a imagem Docker a ser usada para este serviço
+        restart: always
+        environment:
+            MYSQL_USER: "wp_user" # Define o usuário do MySQL
+            MYSQL_PASSWORD: "wp_pass" # Define a senha do usuário MySQL
+            MYSQL_ROOT_PASSWORD: "wp_pass" # Define a senha do usuário ROOT MySQL
+            MYSQL_DATABASE: wpdb # Nome do banco de dados WordPress
+        volumes: # Define volumes para persistência de dados
+            - db:/var/lib/mysql # Mapeia o volume "db" para o diretório do banco de dados do MySQL
+
+    # Interface de administração phpMyAdmin
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin # Define a imagem Docker a ser usada para este serviço
+        restart: always
+        ports:
+            - "8888:80" # Mapeia a porta 8888 do host para a porta 80 do contêiner phpMyAdmin
+        depends_on: # Define a dependência deste serviço com outros serviços
+            - db # Este serviço depende do serviço MariaDB
+        environment:
+            PMA_HOST: db # Host do banco de dados MariaDB
+
+networks: # Define as redes Docker
+    back: # Nome da rede
+
+volumes: # Define volumes Docker
+    db: # Nome do volume  persistente para o banco de dados
